@@ -1,0 +1,44 @@
+pipeline {
+    agent any
+    environment {
+        DOCKER_IMAGE = "ofir2608/app-python"
+        DOCKER_TAG = "latest" // Replace with dynamic tags as needed
+        AWS_REGION = "us-east-1"
+        CLUSTER_NAME = "commit-ofir-eks"
+    }
+    stages {
+        stage('Clone Repository') {
+            steps {
+                git 'https://github.com/ofirtasa/aws_lab.git'
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                bat 'docker build -t %DOCKER_IMAGE%:%DOCKER_TAG% .'
+            }
+        }
+        stage('Push to Docker Hub') {
+            steps {
+                withDockerRegistry([credentialsId: 'dockerhub-creds', url: '']) {
+                    bat 'docker push %DOCKER_IMAGE%:%DOCKER_TAG%'
+                }
+            }
+        }
+        stage('Update EKS Deployment') {
+            steps {
+                bat '''
+                aws eks --region %AWS_REGION% update-kubeconfig --name %CLUSTER_NAME%
+                kubectl apply -f app-deployment.yaml
+                kubectl rollout status deployment/app
+                '''
+            }
+        }
+        stage('Notify') {
+            steps {
+                script {
+                    echo "Deployment completed successfully!"
+                }
+            }
+        }
+    }
+}
