@@ -1,0 +1,19 @@
+[ req ]
+default_bits       = 2048
+default_keyfile    = privkey.pem
+distinguished_name = req_distinguished_name
+req_extensions     = v3_req
+x509_extensions    = v3_ca
+
+[ req_distinguished_name ]
+# Distinguish fields: CN is no longer sufficient for SANs, use other fields like organization
+commonName = Common Name (CN)
+
+[ v3_req ]
+# This section will allow the inclusion of SANs
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.1 = a02cf6375587f4721ad78108345d8927-1008b36f65762101.elb.us-east-1.amazonaws.com
+DNS.2 = 34.205.212.150.nip.io
+

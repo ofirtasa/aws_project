@@ -14,6 +14,19 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: ofir2608/commit_lab:latest
+        image: ofir2608/nginx_logo:latest
         ports:
         - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx
+spec:
+  selector:
+    app: nginx
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: LoadBalancer

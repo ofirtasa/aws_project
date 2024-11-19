@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: app
-        image: ofir2608/app-python:latest
+        image: ofir2608/nginx_flask:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 5000
@@ -26,7 +26,7 @@ spec:
         - name: MYSQL_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: mysql-credentials  # Reference to a Kubernetes Secret containing password
+              name: mysql-credentials  
               key: password
         - name: MYSQL_DATABASE
           value: "mydb"

@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-ingress
+  namespace: default 
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - "34.205.212.150.nip.io"  
+      secretName: ingress-local-tls 
+  rules:
+    - host: "34.205.212.150.nip.io"  
+      http:
+        paths:
+          - path: /data
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx1
+                port:
+                  number: 80  
