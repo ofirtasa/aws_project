@@ -1,44 +1,44 @@
 pipeline {
-    agent any
+    agent any  
     environment {
-        DOCKER_IMAGE = "ofir2608/app-python"
-        DOCKER_TAG = "latest" // Replace with dynamic tags as needed
-        AWS_REGION = "us-east-1"
-        CLUSTER_NAME = "commit-ofir-eks"
+        DOCKER_IMAGE = "ofir2608/ngnix_logo"  
+        EKS_CLUSTER = "commit-ofir-eks"
     }
     stages {
-        stage('Clone Repository') {
+        stage('Checkout') {
             steps {
-                git 'https://github.com/ofirtasa/aws_lab.git'
+                checkout scm  
             }
         }
         stage('Build Docker Image') {
             steps {
-                bat 'docker build -t %DOCKER_IMAGE%:%DOCKER_TAG% .'
-            }
-        }
-        stage('Push to Docker Hub') {
-            steps {
-                withDockerRegistry([credentialsId: 'dockerhub-creds', url: '']) {
-                    bat 'docker push %DOCKER_IMAGE%:%DOCKER_TAG%'
+                script {
+                    // Use Jenkins credentials to login to Docker Hub
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub_creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh '''
+                        docker build -t $DOCKER_IMAGE:latest .  
+                        docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD  
+                        docker push $DOCKER_IMAGE:latest  
+                        '''
+                    }
                 }
             }
         }
-        stage('Update EKS Deployment') {
+        stage('Deploy to EKS') {
             steps {
-                bat '''
-                aws eks --region %AWS_REGION% update-kubeconfig --name %CLUSTER_NAME%
-                kubectl apply -f app-deployment.yaml
-                kubectl rollout status deployment/app
+                sh '''
+                aws eks update-kubeconfig --region us-east-1 --name $EKS_CLUSTER  
+                kubectl set image deployment/nginx-deployment nginx=$DOCKER_IMAGE:latest  
                 '''
             }
         }
-        stage('Notify') {
-            steps {
-                script {
-                    echo "Deployment completed successfully!"
-                }
-            }
+    }
+    post {
+        success {
+            echo 'Pipeline completed successfully! The Docker image was built and deployed to EKS.'
+        }
+        failure {
+            echo 'Pipeline failed. Please check the logs to troubleshoot the issue.'
         }
     }
 }
