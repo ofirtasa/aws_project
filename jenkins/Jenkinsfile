@@ -26,10 +26,12 @@ pipeline {
         }
         stage('Deploy to EKS') {
             steps {
-                sh '''
-                aws eks update-kubeconfig --region us-east-1 --name $EKS_CLUSTER  
-                kubectl set image deployment/nginx-deployment nginx=$DOCKER_IMAGE:latest  
-                '''
+                withCredentials([usernamePassword(credentialsId: 'aws-creds', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
+                    sh '''
+                    aws eks update-kubeconfig --region us-east-1 --name $EKS_CLUSTER
+                    kubectl set image deployment/nginx-deployment nginx=$DOCKER_IMAGE:latest
+                    '''
+                }
             }
         }
     }
