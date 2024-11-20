@@ -26,7 +26,7 @@ pipeline {
         }
         stage('Deploy to EKS') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'aws_creds', passwordVariable: 'AWS_SECRET_ACCESS_KEY', usernameVariable: 'AWS_ACCESS_KEY_ID')]) {
+                withAWS(credentials: 'aws_creds') {
                     sh '''
                     aws eks update-kubeconfig --region us-east-1 --name $EKS_CLUSTER
                     kubectl set image deployment/nginx-deployment nginx=$DOCKER_IMAGE:latest
