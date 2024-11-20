@@ -1,7 +1,7 @@
 pipeline {
     agent any  
     environment {
-        DOCKER_IMAGE = "ofir2608/ngnix_logo"  
+        DOCKER_IMAGE = "ofir2608/nginx_logo"  
         EKS_CLUSTER = "commit-ofir-eks"
     }
     stages {
