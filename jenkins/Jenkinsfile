@@ -2,6 +2,7 @@ pipeline {
     agent any  
     environment {
         DOCKER_IMAGE = "ofir2608/nginx_logo"  
+        AWS_REGION = "us-east-1"
         EKS_CLUSTER = "commit-ofir-eks"
     }
     stages {
@@ -24,11 +25,20 @@ pipeline {
                 }
             }
         }
+        stage('Setup AWS and kubectl') {
+            steps {
+                withAWS(credentials: 'aws_creds', region: "${AWS_REGION}") {
+                    sh '''
+                    aws eks update-kubeconfig --region $AWS_REGION --name $EKS_CLUSTER
+                    kubectl cluster-info
+                    '''
+                }
+            }
+        }
         stage('Deploy to EKS') {
             steps {
-                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws_creds']]) {
+                withAWS(credentials: 'aws_creds', region: "${AWS_REGION}") {
                     sh '''
-                    aws eks update-kubeconfig --region us-east-1 --name $EKS_CLUSTER
                     kubectl set image deployment/nginx-deployment nginx=$DOCKER_IMAGE:latest
                     '''
                 }
